@@ -1,0 +1,73 @@
+---
+title: "FemTechPaperVis"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(janitor)
+library(extrafont)
+
+# Import OpenFDA data and clean column names
+fda_appr <- read_csv("~/Projects/femtech-figure/source_data/510kApprovals.csv", 
+                   name_repair = make_clean_names)
+```
+
+```{r, plot}
+# Reorder factor levels to ensure Obstetrics/Gynecology is at the bottom
+fda_appr$panel <- factor(fda_appr$panel, levels = c("Ear Nose & Throat", "Cardiovascular", "Gastroenterology/Urology", "Orthopedic", "Obstetrics/Gynecology"))
+
+# Set up a color mapping with different grayscales
+grayscale_values <- c("Obstetrics/Gynecology" = "gray10",
+                      "Ear Nose & Throat" = "gray45",
+                      "Cardiovascular" = "gray60",
+                      "Gastroenterology/Urology" = "gray75",
+                      "Orthopedic" = "gray90")
+
+# Plot 510(k) approvals by year
+fda_appr_plot <- ggplot(fda_appr,
+                        aes(
+                          x = factor(year_of_decision),
+                          y = x510k_premarket_notifications,
+                          fill = panel
+                        )) +
+  geom_bar(stat = "identity", position = "stack") +  # Use stat="identity" with position="stack"
+  scale_fill_manual(values = grayscale_values) +
+  labs(
+    title = "Trends in 510(k) Device Clearances by FDA Panel from 2013 to 2023",
+    subtitle = "Focus on Obstetrics/Gynecology",
+    x = "Year Approved",
+    y = "Number of 510(k) Clearances",
+    fill = "FDA Panel"
+  ) +
+  theme(
+    panel.grid.minor = element_blank(),
+    panel.grid.major.x = element_blank(),
+    legend.position = "right",
+    axis.text.x = element_text(size = 9, family = "Arial"),
+    # Set font to Arial, size to 9
+    axis.text.y = element_text(size = 9, family = "Arial"),
+    # Ensure consistent font and size on y-axis
+    axis.title.x = element_text(size = 9, family = "Arial"),
+    # x-axis title
+    axis.title.y = element_text(size = 9, family = "Arial"),
+    # y-axis title
+    plot.title = element_text(size = 10, family = "Arial"),
+    # Title text
+    plot.subtitle = element_text(size = 9, family = "Arial"),
+    # Title text
+    legend.text = element_text(size = 9, family = "Arial"),
+    # Legend text
+    legend.title = element_text(size = 9, family = "Arial")  
+    # Legend title
+  )
+
+fda_appr_plot
+
+# Save to PDF with common figure dimensions
+ggsave("images/CareyFig1.pdf", plot = fda_appr_plot, dpi = 1000, width = 6.5, height = 4.5, bg = "white")
+```
+
+
+
+
